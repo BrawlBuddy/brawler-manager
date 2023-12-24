@@ -18,6 +18,6 @@ type Matchup struct {
 }
 
 type Brawler struct {
-	Name   string
-	WinPct float32
+	Name   string  `json:"name"`
+	WinPct float32 `json:"score"`
 }
