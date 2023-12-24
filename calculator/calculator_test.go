@@ -95,4 +95,28 @@ func TestFindPercentAgainstAll(t *testing.T) {
 
 func TestFindPercentMap(t *testing.T) {
 	var wg sync.WaitGroup
+	var mapStats []brawlers.Brawler
+	wg.Add(1)
+	go FindPercentMap(brawlerList, mapPct, maps[0], &mapStats, &wg)
+	wg.Wait()
+	t.Log(mapStats)
+	for k, v := range mapPct {
+		if k.Map != maps[0] {
+			continue
+		}
+		t.Log(k.Brawler, v)
+	}
+}
+
+func TestFindPercentCounter(t *testing.T) {
+	var wg sync.WaitGroup
+	var counterStats []brawlers.Brawler
+	wg.Add(1)
+	go FindPercentCounter([]string{"Surge", "Colt"}, []string{}, matchUps, &counterStats, &wg)
+	wg.Wait()
+	for _, x := range counterStats {
+		if x.WinPct != 100 {
+			t.Error("Not equal to 100, result:", x.WinPct)
+		}
+	}
 }

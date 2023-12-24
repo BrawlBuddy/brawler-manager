@@ -6,6 +6,10 @@ import (
 	"sync"
 )
 
+const poolFactor = 20
+const mapFactor = 40
+const counterFactor = 40
+
 func InitialRanks(banned []string, friendly []string, enemy []string, gameMap string, brawlersList []string, matchUps map[brawlers.Pair]brawlers.Matchup, mapPct map[brawlers.MapPair]float32) []brawlers.Brawler {
 	var wg sync.WaitGroup
 	pool := CreatePool(brawlersList, banned, friendly, enemy)
@@ -23,13 +27,13 @@ func InitialRanks(banned []string, friendly []string, enemy []string, gameMap st
 	wg.Wait()
 	for i, x := range poolStats {
 		indexes[x.Name] = i
-		x.WinPct *= 20
+		x.WinPct *= poolFactor
 	}
 	for _, x := range mapStats {
-		poolStats[indexes[x.Name]].WinPct += 40 * x.WinPct
+		poolStats[indexes[x.Name]].WinPct += mapFactor * x.WinPct
 	}
 	for _, x := range counterStats {
-		poolStats[indexes[x.Name]].WinPct += 40 * x.WinPct
+		poolStats[indexes[x.Name]].WinPct += counterFactor * x.WinPct
 	}
 	sort.Slice(poolStats, func(i, j int) bool {
 		return poolStats[i].WinPct > poolStats[j].WinPct // sort in decreasing order
