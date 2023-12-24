@@ -7,10 +7,11 @@ import (
 	"sort"
 	"sync"
 	"testing"
+	"time"
 )
 
-var brawlerList = []string{"Colt", "Surge", "Hank", "Barley", "Shelly", "Jessie", "Spike"}
-var maps = []string{"Split", "Super Beach", "Sneaky Fields"}
+var brawlerList = []string{"Ash", "Belle", "Buster", "Buzz", "Charlie", "Colette", "Cordelius", "Eve", "Fang", "Janet", "Lola", "Lou", "Maisie", "Mandy", "Otis", "Pearl", "Ruffs", "R-T", "Sam", "Amber", "Chester", "Crow", "Leon", "Meg", "Sandy", "Spike", "Byron", "Chuck", "Doug", "Gene", "Gray", "Max", "Mortis", "Mr. P", "Sprout", "Squeak", "Tara", "Willow", "Bea", "Bibi", "Bo", "Bonnie", "Edgar", "Emz", "Frank", "Gale", "Griff", "Grom", "Hank", "Nani", "Pam", "Piper", "Surge", "Stu", "8-Bit", "Carl", "Darryl", "Dynamike", "Gus", "Jacky", "Jessie", "Penny", "Rico", "Tick", "Barley", "Bull", "Brock", "Colt", "El Primo", "Nita", "Poco", "Rosa", "Shelly"}
+var maps = []string{"Crystal Cavern", "Power League Stadium", "Snake Prairie", "Backyard Bowl", "Deathcap Trap", "Dune Drift", "Bounty Hill", "Hot Maze", "Kaboom Canyon", "Layer Cake", "Parallel Plays", "Undermine", "Gem Bash", "Hidden Hollow", "Stormy Plains", "Double Swoosh", "Escape Velocity", "Pinhole Punt", "Puddle Splash", "Quick Skip"}
 var matchUps = createTestData(brawlerList)
 var mapPct = createMapData(brawlerList, maps)
 
@@ -119,4 +120,11 @@ func TestFindPercentCounter(t *testing.T) {
 			t.Error("Not equal to 100, result:", x.WinPct)
 		}
 	}
+}
+
+func TestGenerateRanks(t *testing.T) {
+	start := time.Now()
+	t.Log(GenerateRanks([]string{"Ash", "Belle", "Lou", "Maisie", "Mr. P", "Sprout"}, []string{"Gene", "Gray"}, []string{"Max", "Nani", "Buzz"}, "Bounty Hill", brawlerList, matchUps, mapPct))
+	elapsed := time.Since(start)
+	t.Log("Time:", elapsed)
 }

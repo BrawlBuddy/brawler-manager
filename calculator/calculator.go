@@ -10,7 +10,7 @@ const poolFactor = 20
 const mapFactor = 40
 const counterFactor = 40
 
-func InitialRanks(banned []string, friendly []string, enemy []string, gameMap string, brawlersList []string, matchUps map[brawlers.Pair]brawlers.Matchup, mapPct map[brawlers.MapPair]float32) []brawlers.Brawler {
+func GenerateRanks(banned []string, friendly []string, enemy []string, gameMap string, brawlersList []string, matchUps map[brawlers.Pair]brawlers.Matchup, mapPct map[brawlers.MapPair]float32) []brawlers.Brawler {
 	var wg sync.WaitGroup
 	pool := CreatePool(brawlersList, banned, friendly, enemy)
 	indexes := map[string]int{}
