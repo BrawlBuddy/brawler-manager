@@ -10,10 +10,8 @@ const poolFactor = 20
 const mapFactor = 40
 const counterFactor = 40
 
-func GenerateRanks(banned []string, friendly []string, enemy []string, gameMap string) []brawlers.Brawler {
+func GenerateRanks(banned []string, friendly []string, enemy []string, gameMap string, matchUps map[string]float32, mapPct map[string]map[string]float32) []brawlers.Brawler {
 	var wg sync.WaitGroup
-	matchUps := brawlers.GetMatchUps()
-	mapPct := brawlers.GetMapData()
 	allBrawlers := brawlers.GetAllBrawlers()
 	pool := CreatePool(allBrawlers, banned, friendly, enemy)
 	indexes := map[string]int{}
@@ -65,7 +63,7 @@ func CreatePool(brawlersList []string, banned []string, friendly []string, enemy
 	return pool
 }
 
-func FindPercentAgainstAll(brawlerList []string, matchUps map[brawlers.Pair]brawlers.Matchup, result *[]brawlers.Brawler, wg *sync.WaitGroup) {
+func FindPercentAgainstAll(brawlerList []string, matchUps map[string]float32, result *[]brawlers.Brawler, wg *sync.WaitGroup) {
 	defer wg.Done()
 	stats := map[string]float32{}
 	N := len(brawlerList)
@@ -94,27 +92,28 @@ func FindPercentAgainstAll(brawlerList []string, matchUps map[brawlers.Pair]braw
 	}
 	var keyValuePairs []brawlers.Brawler
 	for k, v := range stats {
-		keyValuePairs = append(keyValuePairs, brawlers.Brawler{k, v})
+		keyValuePairs = append(keyValuePairs, brawlers.Brawler{Name: k, WinPct: v})
 	}
 	*result = keyValuePairs
 }
 
-func FindPercentMap(brawlerList []string, mapPct map[brawlers.MapPair]float32, gameMap string, result *[]brawlers.Brawler, wg *sync.WaitGroup) {
+func FindPercentMap(brawlerList []string, mapPct map[string]map[string]float32, gameMap string, result *[]brawlers.Brawler, wg *sync.WaitGroup) {
 	defer wg.Done()
 	var keyValuePairs []brawlers.Brawler
+	currentMap := mapPct[gameMap]
 	for _, x := range brawlerList {
-		winPct := mapPct[brawlers.MapPair{gameMap, x}]
-		keyValuePairs = append(keyValuePairs, brawlers.Brawler{x, winPct})
+		winPct := currentMap[x]
+		keyValuePairs = append(keyValuePairs, brawlers.Brawler{Name: x, WinPct: winPct})
 	}
 	*result = keyValuePairs
 }
 
-func FindPercentCounter(brawlerList []string, enemy []string, matchUps map[brawlers.Pair]brawlers.Matchup, result *[]brawlers.Brawler, wg *sync.WaitGroup) {
+func FindPercentCounter(brawlerList []string, enemy []string, matchUps map[string]float32, result *[]brawlers.Brawler, wg *sync.WaitGroup) {
 	defer wg.Done()
 	var keyValuePairs []brawlers.Brawler
 	if len(enemy) == 0 {
 		for _, x := range brawlerList {
-			keyValuePairs = append(keyValuePairs, brawlers.Brawler{x, 100})
+			keyValuePairs = append(keyValuePairs, brawlers.Brawler{Name: x, WinPct: 100})
 		}
 		result = &keyValuePairs
 		return
@@ -124,26 +123,25 @@ func FindPercentCounter(brawlerList []string, enemy []string, matchUps map[brawl
 		for _, e := range enemy {
 			winPct += FindWinPct(x, e, matchUps)
 		}
-		keyValuePairs = append(keyValuePairs, brawlers.Brawler{x, winPct / float32(len(enemy))})
+		keyValuePairs = append(keyValuePairs, brawlers.Brawler{Name: x, WinPct: winPct / float32(len(enemy))})
 	}
 	*result = keyValuePairs
 }
 
-func FindWinPct(target string, enemy string, matchUps map[brawlers.Pair]brawlers.Matchup) float32 {
-	var pair brawlers.Pair
+func FindWinPct(target string, enemy string, matchUps map[string]float32) float32 {
+	var pair string
 	var first bool
 	if target < enemy {
-		pair = brawlers.Pair{target, enemy}
+		pair = target + "_" + enemy
 		first = true
 	} else {
-		pair = brawlers.Pair{enemy, target}
+		pair = enemy + "_" + target
 		first = false
 	}
 	matchUp := matchUps[pair]
-	totalGames := matchUp.Brawler1wins + matchUp.Brawler2wins
 	if first {
-		return float32(matchUp.Brawler1wins) / float32(totalGames)
+		return matchUp
 	} else {
-		return float32(matchUp.Brawler2wins) / float32(totalGames)
+		return 1 - matchUp
 	}
 }
