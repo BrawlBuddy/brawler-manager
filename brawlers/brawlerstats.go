@@ -11,7 +11,7 @@ type BrawlerJSON struct {
 }
 
 func GetMatchUps() map[string]float32 {
-	matchUpList, err := ioutil.ReadFile("./data/1v1.json")
+	matchUpList, err := ioutil.ReadFile("./data/1v1_latest.json")
 	if err != nil {
 		log.Fatal("Error when opening file: ", err)
 	}
