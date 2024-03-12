@@ -20,6 +20,7 @@ type matchContext struct {
 
 var OneVone map[string]float32
 var mapData map[string]map[string]float32
+var useRates map[string]map[string]float32
 
 func postBrawlerPicks(c *gin.Context) {
 	var match matchContext
@@ -27,7 +28,7 @@ func postBrawlerPicks(c *gin.Context) {
 		c.IndentedJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	brawlersRanked := calculator.GenerateRanks(match.Bans, match.Friendly, match.Enemy, match.Map, OneVone, mapData)
+	brawlersRanked := calculator.GenerateRanks(match.Bans, match.Friendly, match.Enemy, match.Map, OneVone, mapData, useRates)
 	c.IndentedJSON(http.StatusOK, brawlersRanked)
 }
 
@@ -46,6 +47,7 @@ func returnRandomBrawlerTest(match matchContext) []brawlers.Brawler {
 func CORSMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		c.Writer.Header().Set("Access-Control-Allow-Origin", "https://brawlbuddy.github.io")
+		c.Writer.Header().Set("Access-Control-Allow-Origin", "http://localhost:5173")
 		c.Writer.Header().Set("Access-Control-Allow-Credentials", "true")
 		c.Writer.Header().Set("Access-Control-Allow-Headers", "Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization, accept, origin, Cache-Control, X-Requested-With")
 		c.Writer.Header().Set("Access-Control-Allow-Methods", "POST, OPTIONS, GET, PUT")
@@ -72,6 +74,7 @@ func main() {
 
 	mapData = brawlers.GetMapData()
 	OneVone = brawlers.GetMatchUps()
+	useRates = brawlers.GetUseRates()
 	if err := router.Run(":" + port); err != nil {
 		log.Fatal(err)
 	}

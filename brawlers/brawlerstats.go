@@ -11,7 +11,7 @@ type BrawlerJSON struct {
 }
 
 func GetMatchUps() map[string]float32 {
-	matchUpList, err := ioutil.ReadFile("./data/1v1_latest.json")
+	matchUpList, err := ioutil.ReadFile("./data/1v1.json")
 	if err != nil {
 		log.Fatal("Error when opening file: ", err)
 	}
@@ -53,4 +53,17 @@ func GetAllBrawlers() []string {
 		allBrawlers = append(allBrawlers, brawler.Name)
 	}
 	return allBrawlers
+}
+
+func GetUseRates() map[string]map[string]float32 {
+	useRates, err := ioutil.ReadFile("./data/use_rate.json")
+	if err != nil {
+		log.Fatal("Error when opening file: ", err)
+	}
+	var payload map[string]map[string]float32
+	err = json.Unmarshal(useRates, &payload)
+	if err != nil {
+		log.Fatal("Error when unmarshalling file: ", err)
+	}
+	return payload
 }

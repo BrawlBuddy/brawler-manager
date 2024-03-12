@@ -9,8 +9,9 @@ import (
 const poolFactor = 20
 const mapFactor = 40
 const counterFactor = 40
+const useRateFactor = 40
 
-func GenerateRanks(banned []string, friendly []string, enemy []string, gameMap string, matchUps map[string]float32, mapPct map[string]map[string]float32) []brawlers.Brawler {
+func GenerateRanks(banned []string, friendly []string, enemy []string, gameMap string, matchUps map[string]float32, mapPct map[string]map[string]float32, useRates map[string]map[string]float32) []brawlers.Brawler {
 	var wg sync.WaitGroup
 	allBrawlers := brawlers.GetAllBrawlers()
 	pool := CreatePool(allBrawlers, banned, friendly, enemy)
@@ -18,6 +19,7 @@ func GenerateRanks(banned []string, friendly []string, enemy []string, gameMap s
 
 	var poolStats []brawlers.Brawler
 	var mapStats []brawlers.Brawler
+	var useRateStats []brawlers.Brawler
 	var counterStats []brawlers.Brawler
 	wg.Add(1)
 	go FindPercentAgainstAll(pool, matchUps, &poolStats, &wg)
@@ -25,6 +27,8 @@ func GenerateRanks(banned []string, friendly []string, enemy []string, gameMap s
 	go FindPercentMap(pool, mapPct, gameMap, &mapStats, &wg)
 	wg.Add(1)
 	go FindPercentCounter(pool, enemy, matchUps, &counterStats, &wg)
+	wg.Add(1)
+	go FindPercentMap(pool, useRates, gameMap, &useRateStats, &wg)
 	wg.Wait()
 	for i, x := range poolStats {
 		indexes[x.Name] = i
@@ -32,6 +36,12 @@ func GenerateRanks(banned []string, friendly []string, enemy []string, gameMap s
 	}
 	for _, x := range mapStats {
 		poolStats[indexes[x.Name]].WinPct += mapFactor * x.WinPct
+	}
+	if gameMap != "" {
+		//avgUseRate := CalculateAverageUsageRate(useRateStats)
+		for _, x := range useRateStats {
+			poolStats[indexes[x.Name]].WinPct += useRateFactor * (x.WinPct)
+		}
 	}
 	for _, x := range counterStats {
 		poolStats[indexes[x.Name]].WinPct += counterFactor * x.WinPct
@@ -61,6 +71,14 @@ func CreatePool(brawlersList []string, banned []string, friendly []string, enemy
 		}
 	}
 	return pool
+}
+
+func CalculateAverageUsageRate(brawlers []brawlers.Brawler) float32 {
+	total := float32(0)
+	for _, b := range brawlers {
+		total += b.WinPct
+	}
+	return total / float32(len(brawlers))
 }
 
 func FindPercentAgainstAll(brawlerList []string, matchUps map[string]float32, result *[]brawlers.Brawler, wg *sync.WaitGroup) {
@@ -97,6 +115,7 @@ func FindPercentAgainstAll(brawlerList []string, matchUps map[string]float32, re
 	*result = keyValuePairs
 }
 
+// can use this for map win pct and map use rate
 func FindPercentMap(brawlerList []string, mapPct map[string]map[string]float32, gameMap string, result *[]brawlers.Brawler, wg *sync.WaitGroup) {
 	defer wg.Done()
 	var keyValuePairs []brawlers.Brawler
